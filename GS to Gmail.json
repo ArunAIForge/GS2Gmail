@@ -1,0 +1,138 @@
+{
+  "name": "GS to Gmail",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "3927bac0-c138-4f79-9ef7-7eb6305508cf",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all incoming row items from the Google Sheets node\nconst items = $input.all();\n\n// Configured file and sheet names\nconst fileName = \"Students Report Data\";\nconst sheetName = \"Project / Task Status Report\";\n\n// Build dynamic subject line\nconst emailSubject = `${fileName} ${items.length} records processed`;\n\n// Build clean HTML email body\nlet emailBody = `<h2>${fileName} - ${sheetName}</h2>`;\nemailBody += `<p>Here is the latest data extracted from your Google Sheet:</p>`;\nemailBody += `<table border=\"1\" cellpadding=\"8\" cellspacing=\"0\" style=\"border-collapse: collapse; font-family: Arial, sans-serif;\">`;\n\n// Loop through each row\nitems.forEach((item, index) => {\n  const row = { ...item.json };\n  delete row.row_number; // Exclude row_number\n\n  // Header row\n  if (index === 0) {\n    emailBody += `<tr style=\"background-color: #f2f2f2;\">`;\n    Object.keys(row).forEach(key => {\n      emailBody += `<th>${key}</th>`;\n    });\n    emailBody += `</tr>`;\n  }\n\n  // Data rows\n  emailBody += `<tr>`;\n  Object.values(row).forEach(val => {\n    emailBody += `<td>${val ?? ''}</td>`;\n  });\n  emailBody += `</tr>`;\n});\n\nemailBody += `</table>`;\nemailBody += `<br><br>`;\nemailBody += `<p style=\"margin: 0; font-family: Arial, sans-serif;\">Regards,</p>`;\nemailBody += `<p style=\"margin: 0; font-weight: bold; font-family: Arial, sans-serif;\">GS Automation</p>`;\n\n// Return formatted subject and HTML body\nreturn [\n  {\n    json: {\n      emailSubject: emailSubject,\n      emailHtml: emailBody\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "95f89eeb-fe92-4386-91ec-697c8b5c9f67",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "sendTo": "arunaiforge@gmail.com",
+        "subject": "={{ $json.emailSubject }}",
+        "message": "={{ $json.emailHtml }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        608,
+        0
+      ],
+      "id": "f89e4f7d-6964-47d9-9b20-644f09c76ce9",
+      "name": "Send a message",
+      "webhookId": "98958243-d2e4-4065-a4ae-4851a9ab052c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2pdti65obugfIPEd",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "=https://docs.google.com/spreadsheets/d/1_bXTttk8wQkxQMhUAGAV57v3DdbNY7vPVw8t7e9gP40/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Project / Task Status Report",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1_bXTttk8wQkxQMhUAGAV57v3DdbNY7vPVw8t7e9gP40/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        0
+      ],
+      "id": "5c8c45a6-66d5-4614-b47d-2455599e518e",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "6MS6co2QZQ1FbIRD",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "14e2afd4-f30d-4680-b1ba-e14755887190",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f0de81795d1c262191101f57e59ca96c36c3ffe0bf277c735784a71210da25ac"
+  },
+  "nodeGroups": [],
+  "id": "M4G8mBsuKH48UCTS",
+  "tags": []
+}
